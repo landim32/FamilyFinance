@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FamilyFinance.ViewModels"
+             x:Class="FamilyFinance.Views.AccountFormPage"
+             Title="Account">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <!-- Title -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Title *" FontSize="14" TextColor="Gray" />
+                <Entry Text="{Binding Title}"
+                       Placeholder="Enter account title"
+                       ClearButtonVisibility="WhileEditing" />
+            </VerticalStackLayout>
+
+            <!-- Amount -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Amount *" FontSize="14" TextColor="Gray" />
+                <Entry Text="{Binding AmountText}"
+                       Placeholder="0.00"
+                       Keyboard="Numeric"
+                       ClearButtonVisibility="WhileEditing" />
+            </VerticalStackLayout>
+
+            <!-- Credit / Debit Toggle -->
+            <Frame Padding="12" CornerRadius="10"
+                   BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#2A2A2A}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label VerticalOptions="Center" FontSize="16">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsCredit}" Value="True">
+                                <Setter Property="Text" Value="Credit (Income)" />
+                                <Setter Property="TextColor" Value="Green" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsCredit}" Value="False">
+                                <Setter Property="Text" Value="Debit (Expense)" />
+                                <Setter Property="TextColor" Value="Red" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                    <Switch Grid.Column="1"
+                            IsToggled="{Binding IsCredit}"
+                            OnColor="Green"
+                            ThumbColor="{AppThemeBinding Light=White, Dark=LightGray}" />
+                </Grid>
+            </Frame>
+
+            <!-- Account Type -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Account Type" FontSize="14" TextColor="Gray" />
+                <Picker Title="Select account type"
+                        ItemsSource="{Binding AccountTypes}"
+                        SelectedItem="{Binding SelectedAccountType}"
+                        ItemDisplayBinding="{Binding Name}" />
+            </VerticalStackLayout>
+
+            <!-- Person -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Person" FontSize="14" TextColor="Gray" />
+                <Picker Title="Select person"
+                        ItemsSource="{Binding People}"
+                        SelectedItem="{Binding SelectedPerson}"
+                        ItemDisplayBinding="{Binding Name}" />
+            </VerticalStackLayout>
+
+            <!-- Notes -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Notes" FontSize="14" TextColor="Gray" />
+                <Editor Text="{Binding Notes}"
+                        Placeholder="Optional notes..."
+                        HeightRequest="100"
+                        AutoSize="TextChanges" />
+            </VerticalStackLayout>
+
+            <!-- Save Button -->
+            <Button Text="Save"
+                    Command="{Binding SaveAccountCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#6200EE, Dark=#BB86FC}"
+                    TextColor="White"
+                    CornerRadius="10"
+                    HeightRequest="50"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    Margin="0,8,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

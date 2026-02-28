@@ -32,5 +32,9 @@
 	<string>Required to select a profile photo</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Required to take a profile photo</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Required for voice input to the AI assistant</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Required for speech-to-text in the AI assistant</string>
 </dict>
 </plist>

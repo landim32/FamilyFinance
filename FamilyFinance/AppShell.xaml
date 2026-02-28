@@ -39,4 +39,8 @@
         <ShellContent ContentTemplate="{DataTemplate views:ExportPage}" Route="ExportPage" />
     </FlyoutItem>
 
+    <FlyoutItem Title="AI Assistant" Icon="ai_icon.png">
+        <ShellContent ContentTemplate="{DataTemplate views:AiPage}" Route="AiPage" />
+    </FlyoutItem>
+
 </Shell>

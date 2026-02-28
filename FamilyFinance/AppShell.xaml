@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="FamilyFinance.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:FamilyFinance.Views"
+    Shell.FlyoutBehavior="Flyout"
+    Title="Family Finance">
+
+    <Shell.FlyoutHeader>
+        <Grid HeightRequest="120"
+              BackgroundColor="{AppThemeBinding Light=#6200EE, Dark=#1E1E1E}"
+              Padding="20">
+            <VerticalStackLayout VerticalOptions="Center">
+                <Label Text="Family Finance"
+                       TextColor="White"
+                       FontSize="24"
+                       FontAttributes="Bold" />
+                <Label Text="Personal Finance Manager"
+                       TextColor="#CCCCCC"
+                       FontSize="13" />
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <FlyoutItem Title="Accounts" Icon="account_icon.png">
+        <ShellContent ContentTemplate="{DataTemplate views:AccountPage}" Route="AccountPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="People" Icon="person_icon.png">
+        <ShellContent ContentTemplate="{DataTemplate views:PersonPage}" Route="PersonPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Account Types" Icon="type_icon.png">
+        <ShellContent ContentTemplate="{DataTemplate views:AccountTypePage}" Route="AccountTypePage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Export JSON" Icon="export_icon.png">
+        <ShellContent ContentTemplate="{DataTemplate views:ExportPage}" Route="ExportPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="AI Assistant" Icon="ai_icon.png">
+        <ShellContent ContentTemplate="{DataTemplate views:AiPage}" Route="AiPage" />
+    </FlyoutItem>
+
+</Shell>

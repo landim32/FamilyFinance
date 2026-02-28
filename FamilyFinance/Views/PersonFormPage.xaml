@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FamilyFinance.ViewModels"
+             x:Class="FamilyFinance.Views.PersonFormPage"
+             Title="Person">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <!-- Photo -->
+            <VerticalStackLayout HorizontalOptions="Center" Spacing="8">
+                <Frame WidthRequest="120" HeightRequest="120"
+                       CornerRadius="60" Padding="0"
+                       IsClippedToBounds="True"
+                       HorizontalOptions="Center">
+                    <Image Source="{Binding PhotoImageSource}"
+                           Aspect="AspectFill"
+                           WidthRequest="120"
+                           HeightRequest="120" />
+                </Frame>
+
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="8">
+                    <Button Text="Gallery"
+                            Command="{Binding PickPhotoCommand}"
+                            BackgroundColor="{AppThemeBinding Light=#E0E0E0, Dark=#444444}"
+                            TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                            CornerRadius="8"
+                            HeightRequest="36"
+                            FontSize="13" />
+                    <Button Text="Camera"
+                            Command="{Binding TakePhotoCommand}"
+                            BackgroundColor="{AppThemeBinding Light=#E0E0E0, Dark=#444444}"
+                            TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                            CornerRadius="8"
+                            HeightRequest="36"
+                            FontSize="13" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+
+            <!-- Name -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Name *" FontSize="14" TextColor="Gray" />
+                <Entry Text="{Binding Name}"
+                       Placeholder="Enter person name"
+                       ClearButtonVisibility="WhileEditing" />
+            </VerticalStackLayout>
+
+            <!-- Phone -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Phone" FontSize="14" TextColor="Gray" />
+                <Entry Text="{Binding Phone}"
+                       Placeholder="Enter phone number"
+                       Keyboard="Telephone"
+                       ClearButtonVisibility="WhileEditing" />
+            </VerticalStackLayout>
+
+            <!-- Email -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Email" FontSize="14" TextColor="Gray" />
+                <Entry Text="{Binding Email}"
+                       Placeholder="Enter email address"
+                       Keyboard="Email"
+                       ClearButtonVisibility="WhileEditing" />
+            </VerticalStackLayout>
+
+            <!-- Save Button -->
+            <Button Text="Save"
+                    Command="{Binding SavePersonCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#6200EE, Dark=#BB86FC}"
+                    TextColor="White"
+                    CornerRadius="10"
+                    HeightRequest="50"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    Margin="0,8,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -30,7 +30,6 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Verify .NET SDK
-      working-directory: mobile
       run: |
         echo "Installed SDKs:"
         dotnet --list-sdks
@@ -39,7 +38,6 @@ jobs:
         dotnet --version
 
     - name: Install MAUI Android workload
-      working-directory: mobile
       run: dotnet workload install maui-android --source https://api.nuget.org/v3/index.json
 
     - name: Install GitVersion
@@ -60,8 +58,7 @@ jobs:
         echo "NuGetVersionV2: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
 
     - name: Restore dependencies
-      working-directory: mobile
-      run: dotnet restore Abipesca.Main/Abipesca.Main.csproj
+      run: dotnet restore FamilyFinance/FamilyFinance.csproj
 
     # ============================================================
     # SIGNING (descomente quando tiver o keystore configurado)
@@ -74,27 +71,25 @@ jobs:
     # ============================================================
     # - name: Decode keystore
     #   run: |
-    #     echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > ${{ github.workspace }}/abipesca.keystore
+    #     echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > ${{ github.workspace }}/familyfinance.keystore
     #
     # - name: Publish Android APK (signed)
-    #   working-directory: mobile
     #   run: |
-    #     dotnet publish Abipesca.Main/Abipesca.Main.csproj \
+    #     dotnet publish FamilyFinance/FamilyFinance.csproj \
     #       -f net8.0-android \
     #       -c Release \
     #       -p:AndroidPackageFormat=apk \
     #       -p:ApplicationDisplayVersion=${{ steps.gitversion.outputs.nuGetVersionV2 }} \
     #       -p:ApplicationVersion=${{ github.run_number }} \
     #       -p:AndroidKeyStore=true \
-    #       -p:AndroidSigningKeyStore=${{ github.workspace }}/abipesca.keystore \
+    #       -p:AndroidSigningKeyStore=${{ github.workspace }}/familyfinance.keystore \
     #       -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} \
     #       -p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEY_PASSWORD }} \
     #       -p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
 
     - name: Publish Android APK
-      working-directory: mobile
       run: |
-        dotnet publish Abipesca.Main/Abipesca.Main.csproj \
+        dotnet publish FamilyFinance/FamilyFinance.csproj \
           -f net8.0-android \
           -c Release \
           -p:AndroidPackageFormat=apk \
@@ -104,18 +99,18 @@ jobs:
     - name: Find APK file
       id: find_apk
       run: |
-        APK_PATH=$(find mobile/Abipesca.Main/bin/Release/net8.0-android -name "*.apk" | head -1)
+        APK_PATH=$(find FamilyFinance/bin/Release/net8.0-android -name "*.apk" | head -1)
         echo "APK found: $APK_PATH"
         echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
 
-        APK_NAME="Abipesca-v${{ steps.gitversion.outputs.nuGetVersionV2 }}.apk"
+        APK_NAME="FamilyFinance-v${{ steps.gitversion.outputs.nuGetVersionV2 }}.apk"
         cp "$APK_PATH" "$APK_NAME"
         echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Abipesca-v${{ steps.gitversion.outputs.nuGetVersionV2 }}
+        name: FamilyFinance-v${{ steps.gitversion.outputs.nuGetVersionV2 }}
         path: ${{ steps.find_apk.outputs.apk_name }}
         retention-days: 90
 

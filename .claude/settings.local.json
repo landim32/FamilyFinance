@@ -6,7 +6,10 @@
       "Bash(dotnet workload:*)",
       "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/emulator/emulator.exe\":*)",
       "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/platform-tools/adb.exe\" devices:*)",
-      "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/platform-tools/adb.exe\" shell:*)"
+      "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/platform-tools/adb.exe\" shell:*)",
+      "Bash(export:*)",
+      "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/platform-tools/adb.exe\":*)",
+      "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/platform-tools/adb.exe\" kill-server:*)"
     ]
   }
 }

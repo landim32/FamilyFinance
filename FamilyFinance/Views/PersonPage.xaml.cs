@@ -21,7 +21,7 @@ public partial class PersonPage : ContentPage
 
     private async void OnPersonSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (e.CurrentSelection.FirstOrDefault() is PersonDisplay personDisplay)
+        if (e.CurrentSelection.FirstOrDefault() is PersonDisplayInfo personDisplay)
         {
             await _viewModel.GoToEditPersonAsync(personDisplay);
 

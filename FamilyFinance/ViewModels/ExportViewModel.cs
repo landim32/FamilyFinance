@@ -1,19 +1,23 @@
 using System.Collections.ObjectModel;
+using AutoMapper;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FamilyFinance.DTOs;
 using FamilyFinance.Services;
 
 namespace FamilyFinance.ViewModels;
 
 public partial class ExportViewModel : ObservableObject
 {
-    private readonly DatabaseService _db;
-    private readonly MigrationService _migration;
+    private readonly IPersonRepository _personRepo;
+    private readonly IMigrationService _migration;
+    private readonly IMapper _mapper;
 
-    public ExportViewModel(DatabaseService db, MigrationService migration)
+    public ExportViewModel(IPersonRepository personRepo, IMigrationService migration, IMapper mapper)
     {
-        _db = db;
+        _personRepo = personRepo;
         _migration = migration;
+        _mapper = mapper;
     }
 
     [ObservableProperty]
@@ -28,12 +32,12 @@ public partial class ExportViewModel : ObservableObject
     [RelayCommand]
     public async Task LoadPeopleAsync()
     {
-        var list = await _db.GetPeopleAsync();
+        var list = await _personRepo.GetAllAsync();
         var displayList = new List<PersonExportDisplay>();
 
         foreach (var p in list)
         {
-            var count = await _db.GetAccountCountByPersonAsync(p.Id);
+            var count = await _personRepo.GetAccountCountAsync(p.Id);
             displayList.Add(new PersonExportDisplay
             {
                 PersonId = p.Id,

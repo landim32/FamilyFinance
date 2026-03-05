@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>FamilyFinance</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FamilyFinance.Domain\FamilyFinance.Domain.csproj" />
+    <ProjectReference Include="..\FamilyFinance.DTO\FamilyFinance.DTO.csproj" />
+    <ProjectReference Include="..\FamilyFinance.Infra.Interfaces\FamilyFinance.Infra.Interfaces.csproj" />
+  </ItemGroup>
+
+</Project>

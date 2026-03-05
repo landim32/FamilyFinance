@@ -1,19 +1,12 @@
-using SQLite;
+namespace FamilyFinance.DTOs;
 
-namespace FamilyFinance.Models;
-
-[Table("Person")]
-public class Person
+public class PersonInfo
 {
-    [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
-
-    [NotNull]
     public string Name { get; set; } = string.Empty;
-
     public string? Phone { get; set; }
-
     public string? Email { get; set; }
-
     public string? PhotoBase64 { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }

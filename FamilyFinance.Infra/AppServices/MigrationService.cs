@@ -4,9 +4,12 @@ using FamilyFinance.Models.Migration;
 
 namespace FamilyFinance.Services;
 
-public class MigrationService
+public class MigrationService : IMigrationService
 {
-    private readonly DatabaseService _db;
+    private readonly IPersonRepository _personRepo;
+    private readonly IAccountRepository _accountRepo;
+    private readonly IAccountTypeRepository _accountTypeRepo;
+    private readonly Func<string> _appDataDirectoryProvider;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -14,18 +17,27 @@ public class MigrationService
         WriteIndented = true
     };
 
-    public MigrationService(DatabaseService db)
+    public MigrationService(
+        IPersonRepository personRepo,
+        IAccountRepository accountRepo,
+        IAccountTypeRepository accountTypeRepo,
+        Func<string> appDataDirectoryProvider)
     {
-        _db = db;
+        _personRepo = personRepo;
+        _accountRepo = accountRepo;
+        _accountTypeRepo = accountTypeRepo;
+        _appDataDirectoryProvider = appDataDirectoryProvider;
     }
 
     public async Task<string> GenerateJsonForPersonAsync(int personId)
     {
-        var person = await _db.GetPersonByIdAsync(personId);
+        var person = await _personRepo.GetByIdAsync(personId);
         if (person is null)
             throw new InvalidOperationException($"Person with Id {personId} not found.");
 
-        var accounts = await _db.GetAccountsByPersonAsync(personId);
+        var accounts = await _accountRepo.GetByPersonAsync(personId);
+        var allTypes = await _accountTypeRepo.GetAllAsync();
+        var typesLookup = allTypes.ToDictionary(t => t.Id);
 
         var migrationAccounts = accounts.Select(a => new AccountMigration
         {
@@ -33,7 +45,7 @@ public class MigrationService
             Title = a.Title,
             Amount = a.Amount,
             IsCredit = !a.IsCredit, // INVERTED
-            AccountType = a.AccountType?.Name,
+            AccountType = a.AccountTypeId.HasValue && typesLookup.TryGetValue(a.AccountTypeId.Value, out var t) ? t.Name : null,
             Notes = a.Notes,
             CreatedAt = a.CreatedAt
         }).ToList();
@@ -67,14 +79,14 @@ public class MigrationService
 
     public async Task<string> ExportJsonForPersonAsync(int personId)
     {
-        var person = await _db.GetPersonByIdAsync(personId);
+        var person = await _personRepo.GetByIdAsync(personId);
         if (person is null)
             throw new InvalidOperationException($"Person with Id {personId} not found.");
 
         var json = await GenerateJsonForPersonAsync(personId);
         var sanitizedName = string.Concat(person.Name.Where(char.IsLetterOrDigit));
         var fileName = $"migration_{sanitizedName}_{person.Id}.json";
-        var filePath = Path.Combine(FileSystem.AppDataDirectory, fileName);
+        var filePath = Path.Combine(_appDataDirectoryProvider(), fileName);
 
         await File.WriteAllTextAsync(filePath, json);
         return filePath;
@@ -82,7 +94,7 @@ public class MigrationService
 
     public async Task<List<string>> ExportAllAsync()
     {
-        var people = await _db.GetPeopleAsync();
+        var people = await _personRepo.GetAllAsync();
         var paths = new List<string>();
 
         foreach (var person in people)

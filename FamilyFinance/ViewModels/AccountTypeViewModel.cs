@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
+using AutoMapper;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FamilyFinance.DTOs;
 using FamilyFinance.Models;
 using FamilyFinance.Services;
 
@@ -8,15 +10,17 @@ namespace FamilyFinance.ViewModels;
 
 public partial class AccountTypeViewModel : ObservableObject
 {
-    private readonly DatabaseService _db;
+    private readonly IAccountTypeRepository _accountTypeRepo;
+    private readonly IMapper _mapper;
 
-    public AccountTypeViewModel(DatabaseService db)
+    public AccountTypeViewModel(IAccountTypeRepository accountTypeRepo, IMapper mapper)
     {
-        _db = db;
+        _accountTypeRepo = accountTypeRepo;
+        _mapper = mapper;
     }
 
     [ObservableProperty]
-    private ObservableCollection<AccountType> accountTypes = new();
+    private ObservableCollection<AccountTypeInfo> accountTypes = new();
 
     [ObservableProperty]
     private string typeName = string.Empty;
@@ -25,7 +29,7 @@ public partial class AccountTypeViewModel : ObservableObject
     private string? typeDescription;
 
     [ObservableProperty]
-    private AccountType? editingType;
+    private AccountTypeInfo? editingType;
 
     [ObservableProperty]
     private bool isFormVisible;
@@ -36,8 +40,8 @@ public partial class AccountTypeViewModel : ObservableObject
     [RelayCommand]
     public async Task LoadAccountTypesAsync()
     {
-        var list = await _db.GetAccountTypesAsync();
-        AccountTypes = new ObservableCollection<AccountType>(list);
+        var list = await _accountTypeRepo.GetAllAsync();
+        AccountTypes = new ObservableCollection<AccountTypeInfo>(_mapper.Map<List<AccountTypeInfo>>(list));
     }
 
     [RelayCommand]
@@ -51,7 +55,7 @@ public partial class AccountTypeViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void ShowEditForm(AccountType accountType)
+    public void ShowEditForm(AccountTypeInfo accountType)
     {
         EditingType = accountType;
         TypeName = accountType.Name;
@@ -78,19 +82,36 @@ public partial class AccountTypeViewModel : ObservableObject
             return;
         }
 
-        var accountType = EditingType ?? new AccountType();
-        accountType.Name = TypeName.Trim();
-        accountType.Description = TypeDescription;
+        try
+        {
+            if (EditingType is not null)
+            {
+                var entity = await _accountTypeRepo.GetByIdAsync(EditingType.Id);
+                if (entity is null) return;
+                entity.Update(TypeName.Trim(), TypeDescription);
+                var error = entity.Validate();
+                if (error != null) { await Shell.Current.DisplayAlert("Error", error, "OK"); return; }
+                await _accountTypeRepo.SaveAsync(entity);
+            }
+            else
+            {
+                var entity = AccountType.Create(TypeName.Trim(), TypeDescription);
+                await _accountTypeRepo.SaveAsync(entity);
+            }
 
-        await _db.SaveAccountTypeAsync(accountType);
-        CancelForm();
-        await LoadAccountTypesAsync();
+            CancelForm();
+            await LoadAccountTypesAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
+        }
     }
 
     [RelayCommand]
-    public async Task DeleteAccountTypeAsync(AccountType accountType)
+    public async Task DeleteAccountTypeAsync(AccountTypeInfo accountType)
     {
-        var linkedCount = await _db.GetAccountCountByTypeAsync(accountType.Id);
+        var linkedCount = await _accountTypeRepo.GetAccountCountAsync(accountType.Id);
 
         if (linkedCount > 0)
         {
@@ -103,7 +124,7 @@ public partial class AccountTypeViewModel : ObservableObject
                 return;
         }
 
-        await _db.DeleteAccountTypeAsync(accountType);
+        await _accountTypeRepo.DeleteAsync(accountType.Id);
         await LoadAccountTypesAsync();
     }
 }

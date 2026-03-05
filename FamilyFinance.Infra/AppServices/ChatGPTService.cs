@@ -6,11 +6,14 @@ using FamilyFinance.Models;
 
 namespace FamilyFinance.Services;
 
-public class ChatGPTService
+public class ChatGPTService : IChatGPTService
 {
     private readonly HttpClient _httpClient;
-    private readonly DatabaseService _db;
+    private readonly IPersonRepository _personRepo;
+    private readonly IAccountTypeRepository _accountTypeRepo;
+    private readonly IAccountRepository _accountRepo;
     private OpenAISettings? _settings;
+    private Func<Task<OpenAISettings>>? _settingsLoader;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -57,35 +60,29 @@ public class ChatGPTService
         - Respond in the same language as the user
         """;
 
-    public ChatGPTService(DatabaseService db)
+    public ChatGPTService(
+        IPersonRepository personRepo,
+        IAccountTypeRepository accountTypeRepo,
+        IAccountRepository accountRepo)
     {
-        _db = db;
+        _personRepo = personRepo;
+        _accountTypeRepo = accountTypeRepo;
+        _accountRepo = accountRepo;
         _httpClient = new HttpClient();
     }
+
+    public void SetSettingsLoader(Func<Task<OpenAISettings>> loader) => _settingsLoader = loader;
 
     private async Task<OpenAISettings> GetSettingsAsync()
     {
         if (_settings is not null)
             return _settings;
 
-        try
+        if (_settingsLoader is not null)
         {
-            using var stream = await FileSystem.OpenAppPackageFileAsync("appsettings.json");
-            using var reader = new StreamReader(stream);
-            var json = await reader.ReadToEndAsync();
-
-            var doc = JsonDocument.Parse(json);
-            var section = doc.RootElement.GetProperty("OpenAI");
-
-            _settings = new OpenAISettings
-            {
-                ApiKey = section.TryGetProperty("ApiKey", out var k) ? k.GetString() ?? "" : "",
-                Model = section.TryGetProperty("Model", out var m) ? m.GetString() ?? "gpt-4o-mini" : "gpt-4o-mini",
-                WhisperModel = section.TryGetProperty("WhisperModel", out var w) ? w.GetString() ?? "whisper-1" : "whisper-1",
-                BaseUrl = section.TryGetProperty("BaseUrl", out var b) ? b.GetString() ?? "https://api.openai.com/v1" : "https://api.openai.com/v1"
-            };
+            _settings = await _settingsLoader();
         }
-        catch
+        else
         {
             _settings = new OpenAISettings();
         }
@@ -170,7 +167,6 @@ public class ChatGPTService
         {
             var cleanJson = aiResponse.Trim();
 
-            // Remove markdown code blocks if ChatGPT wraps them
             if (cleanJson.StartsWith("```"))
             {
                 cleanJson = cleanJson[(cleanJson.IndexOf('\n') + 1)..];
@@ -209,7 +205,6 @@ public class ChatGPTService
         }
         catch (JsonException)
         {
-            // If ChatGPT returned plain text instead of JSON
             return (aiResponse, 0);
         }
     }
@@ -219,18 +214,17 @@ public class ChatGPTService
         int? personId = null;
         int? accountTypeId = null;
 
-        // Find or create person
         if (!string.IsNullOrWhiteSpace(action.PersonName))
         {
-            var people = await _db.GetPeopleAsync();
+            var people = await _personRepo.GetAllAsync();
             var person = people.FirstOrDefault(p =>
                 p.Name.Equals(action.PersonName, StringComparison.OrdinalIgnoreCase));
 
             if (person is null)
             {
-                person = new Person { Name = action.PersonName };
-                await _db.SavePersonAsync(person);
-                people = await _db.GetPeopleAsync();
+                person = Person.Create(action.PersonName);
+                await _personRepo.SaveAsync(person);
+                people = await _personRepo.GetAllAsync();
                 person = people.Last(p =>
                     p.Name.Equals(action.PersonName, StringComparison.OrdinalIgnoreCase));
             }
@@ -238,18 +232,17 @@ public class ChatGPTService
             personId = person.Id;
         }
 
-        // Find or create account type
         if (!string.IsNullOrWhiteSpace(action.AccountTypeName))
         {
-            var types = await _db.GetAccountTypesAsync();
+            var types = await _accountTypeRepo.GetAllAsync();
             var accountType = types.FirstOrDefault(t =>
                 t.Name.Equals(action.AccountTypeName, StringComparison.OrdinalIgnoreCase));
 
             if (accountType is null)
             {
-                accountType = new AccountType { Name = action.AccountTypeName };
-                await _db.SaveAccountTypeAsync(accountType);
-                types = await _db.GetAccountTypesAsync();
+                accountType = AccountType.Create(action.AccountTypeName);
+                await _accountTypeRepo.SaveAsync(accountType);
+                types = await _accountTypeRepo.GetAllAsync();
                 accountType = types.Last(t =>
                     t.Name.Equals(action.AccountTypeName, StringComparison.OrdinalIgnoreCase));
             }
@@ -257,39 +250,32 @@ public class ChatGPTService
             accountTypeId = accountType.Id;
         }
 
-        var account = new Account
-        {
-            Title = action.Title ?? "Untitled",
-            Amount = action.Amount ?? 0,
-            IsCredit = action.IsCredit ?? false,
-            Notes = action.Notes,
-            PersonId = personId,
-            AccountTypeId = accountTypeId,
-            CreatedAt = DateTime.Now
-        };
+        var account = Account.Create(
+            action.Title ?? "Untitled",
+            action.Amount ?? 0.01m,
+            action.IsCredit ?? false,
+            action.Notes,
+            personId,
+            accountTypeId);
 
-        await _db.SaveAccountAsync(account);
+        await _accountRepo.SaveAsync(account);
     }
 
     private async Task CreatePersonFromActionAsync(AiAction action)
     {
-        var person = new Person
-        {
-            Name = action.Name ?? "Unknown",
-            Phone = action.Phone,
-            Email = action.Email
-        };
-        await _db.SavePersonAsync(person);
+        var person = Person.Create(
+            action.Name ?? "Unknown",
+            action.Phone,
+            action.Email);
+        await _personRepo.SaveAsync(person);
     }
 
     private async Task CreateAccountTypeFromActionAsync(AiAction action)
     {
-        var accountType = new AccountType
-        {
-            Name = action.Name ?? "Unknown",
-            Description = action.Description
-        };
-        await _db.SaveAccountTypeAsync(accountType);
+        var accountType = AccountType.Create(
+            action.Name ?? "Unknown",
+            action.Description);
+        await _accountTypeRepo.SaveAsync(accountType);
     }
 }
 
@@ -304,20 +290,14 @@ public class AiResponse
 public class AiAction
 {
     public string? Type { get; set; }
-
-    // Account fields
     public string? Title { get; set; }
     public decimal? Amount { get; set; }
     public bool? IsCredit { get; set; }
     public string? Notes { get; set; }
     public string? PersonName { get; set; }
     public string? AccountTypeName { get; set; }
-
-    // Person fields
     public string? Name { get; set; }
     public string? Phone { get; set; }
     public string? Email { get; set; }
-
-    // AccountType fields
     public string? Description { get; set; }
 }

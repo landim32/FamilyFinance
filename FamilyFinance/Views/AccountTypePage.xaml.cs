@@ -1,4 +1,4 @@
-using FamilyFinance.Models;
+using FamilyFinance.DTOs;
 using FamilyFinance.ViewModels;
 
 namespace FamilyFinance.Views;
@@ -22,7 +22,7 @@ public partial class AccountTypePage : ContentPage
 
     private void OnTypeSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (e.CurrentSelection.FirstOrDefault() is AccountType accountType)
+        if (e.CurrentSelection.FirstOrDefault() is AccountTypeInfo accountType)
         {
             _viewModel.ShowEditForm(accountType);
 

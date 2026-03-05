@@ -24,7 +24,7 @@
                 </VerticalStackLayout>
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="vm:PersonDisplay">
+                <DataTemplate x:DataType="vm:PersonDisplayInfo">
                     <SwipeView>
                         <SwipeView.RightItems>
                             <SwipeItems>

@@ -1,9 +1,9 @@
-using FamilyFinance.Models;
+using FamilyFinance.DTOs;
 using FamilyFinance.ViewModels;
 
 namespace FamilyFinance.Views;
 
-[QueryProperty(nameof(Account), "Account")]
+[QueryProperty(nameof(AccountInfo), "AccountInfo")]
 public partial class AccountFormPage : ContentPage
 {
     private readonly AccountViewModel _viewModel;
@@ -15,7 +15,7 @@ public partial class AccountFormPage : ContentPage
         BindingContext = viewModel;
     }
 
-    public Account? Account
+    public AccountInfo? AccountInfo
     {
         set
         {

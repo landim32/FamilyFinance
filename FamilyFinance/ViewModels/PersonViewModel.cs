@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
+using AutoMapper;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FamilyFinance.DTOs;
 using FamilyFinance.Models;
 using FamilyFinance.Services;
 using FamilyFinance.Views;
@@ -9,20 +11,22 @@ namespace FamilyFinance.ViewModels;
 
 public partial class PersonViewModel : ObservableObject
 {
-    private readonly DatabaseService _db;
+    private readonly IPersonRepository _personRepo;
+    private readonly IMapper _mapper;
 
-    public PersonViewModel(DatabaseService db)
+    public PersonViewModel(IPersonRepository personRepo, IMapper mapper)
     {
-        _db = db;
+        _personRepo = personRepo;
+        _mapper = mapper;
     }
 
     [ObservableProperty]
-    private ObservableCollection<PersonDisplay> people = new();
+    private ObservableCollection<PersonDisplayInfo> people = new();
 
     // ---- Form properties for PersonFormPage ----
 
     [ObservableProperty]
-    private Person? editingPerson;
+    private PersonInfo? editingPerson;
 
     [ObservableProperty]
     private string name = string.Empty;
@@ -42,24 +46,25 @@ public partial class PersonViewModel : ObservableObject
     [RelayCommand]
     public async Task LoadPeopleAsync()
     {
-        var list = await _db.GetPeopleAsync();
-        var displayList = new List<PersonDisplay>();
+        var list = await _personRepo.GetAllAsync();
+        var displayList = new List<PersonDisplayInfo>();
 
         foreach (var p in list)
         {
-            var count = await _db.GetAccountCountByPersonAsync(p.Id);
-            displayList.Add(new PersonDisplay
+            var count = await _personRepo.GetAccountCountAsync(p.Id);
+            var info = _mapper.Map<PersonInfo>(p);
+            displayList.Add(new PersonDisplayInfo
             {
-                Person = p,
+                Person = info,
                 AccountCount = count
             });
         }
 
-        People = new ObservableCollection<PersonDisplay>(displayList);
+        People = new ObservableCollection<PersonDisplayInfo>(displayList);
     }
 
     [RelayCommand]
-    public async Task DeletePersonAsync(PersonDisplay personDisplay)
+    public async Task DeletePersonAsync(PersonDisplayInfo personDisplay)
     {
         var confirm = await Shell.Current.DisplayAlert(
             "Confirm Delete",
@@ -69,7 +74,7 @@ public partial class PersonViewModel : ObservableObject
         if (!confirm)
             return;
 
-        await _db.DeletePersonAsync(personDisplay.Person);
+        await _personRepo.DeleteAsync(personDisplay.Person.Id);
         await LoadPeopleAsync();
     }
 
@@ -80,15 +85,15 @@ public partial class PersonViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task GoToEditPersonAsync(PersonDisplay personDisplay)
+    public async Task GoToEditPersonAsync(PersonDisplayInfo personDisplay)
     {
         await Shell.Current.GoToAsync(nameof(PersonFormPage), new Dictionary<string, object>
         {
-            { "Person", personDisplay.Person }
+            { "PersonInfo", personDisplay.Person }
         });
     }
 
-    public void SetEditingPerson(Person person)
+    public void SetEditingPerson(PersonInfo person)
     {
         EditingPerson = person;
     }
@@ -182,19 +187,34 @@ public partial class PersonViewModel : ObservableObject
             return;
         }
 
-        var person = EditingPerson ?? new Person();
-        person.Name = Name.Trim();
-        person.Phone = Phone;
-        person.Email = Email;
-        person.PhotoBase64 = PhotoBase64;
+        try
+        {
+            if (EditingPerson is not null)
+            {
+                var entity = await _personRepo.GetByIdAsync(EditingPerson.Id);
+                if (entity is null) return;
+                entity.Update(Name.Trim(), Phone, Email, PhotoBase64);
+                var error = entity.Validate();
+                if (error != null) { await Shell.Current.DisplayAlert("Error", error, "OK"); return; }
+                await _personRepo.SaveAsync(entity);
+            }
+            else
+            {
+                var entity = Person.Create(Name.Trim(), Phone, Email, PhotoBase64);
+                await _personRepo.SaveAsync(entity);
+            }
 
-        await _db.SavePersonAsync(person);
-        await Shell.Current.GoToAsync("..");
+            await Shell.Current.GoToAsync("..");
+        }
+        catch (InvalidOperationException ex)
+        {
+            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
+        }
     }
 }
 
-public class PersonDisplay
+public class PersonDisplayInfo
 {
-    public Person Person { get; set; } = new();
+    public PersonInfo Person { get; set; } = new();
     public int AccountCount { get; set; }
 }

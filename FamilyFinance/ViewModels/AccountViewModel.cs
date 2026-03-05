@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
+using AutoMapper;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FamilyFinance.DTOs;
 using FamilyFinance.Models;
 using FamilyFinance.Services;
 using FamilyFinance.Views;
@@ -9,18 +11,28 @@ namespace FamilyFinance.ViewModels;
 
 public partial class AccountViewModel : ObservableObject
 {
-    private readonly DatabaseService _db;
+    private readonly IAccountRepository _accountRepo;
+    private readonly IPersonRepository _personRepo;
+    private readonly IAccountTypeRepository _accountTypeRepo;
+    private readonly IMapper _mapper;
 
-    public AccountViewModel(DatabaseService db)
+    public AccountViewModel(
+        IAccountRepository accountRepo,
+        IPersonRepository personRepo,
+        IAccountTypeRepository accountTypeRepo,
+        IMapper mapper)
     {
-        _db = db;
+        _accountRepo = accountRepo;
+        _personRepo = personRepo;
+        _accountTypeRepo = accountTypeRepo;
+        _mapper = mapper;
     }
 
     [ObservableProperty]
-    private ObservableCollection<Account> accounts = new();
+    private ObservableCollection<AccountInfo> accounts = new();
 
     [ObservableProperty]
-    private ObservableCollection<Account> filteredAccounts = new();
+    private ObservableCollection<AccountInfo> filteredAccounts = new();
 
     [ObservableProperty]
     private decimal totalBalance;
@@ -34,8 +46,24 @@ public partial class AccountViewModel : ObservableObject
     [RelayCommand]
     public async Task LoadAccountsAsync()
     {
-        var list = await _db.GetAccountsAsync();
-        Accounts = new ObservableCollection<Account>(list);
+        var list = await _accountRepo.GetAllAsync();
+        var people = await _personRepo.GetAllAsync();
+        var types = await _accountTypeRepo.GetAllAsync();
+
+        var peopleLookup = people.ToDictionary(p => p.Id);
+        var typesLookup = types.ToDictionary(t => t.Id);
+
+        var infoList = list.Select(a =>
+        {
+            var info = _mapper.Map<AccountInfo>(a);
+            if (a.PersonId.HasValue && peopleLookup.TryGetValue(a.PersonId.Value, out var person))
+                info.PersonName = person.Name;
+            if (a.AccountTypeId.HasValue && typesLookup.TryGetValue(a.AccountTypeId.Value, out var type))
+                info.AccountTypeName = type.Name;
+            return info;
+        }).ToList();
+
+        Accounts = new ObservableCollection<AccountInfo>(infoList);
         ApplyFilter();
         CalculateBalance();
     }
@@ -55,7 +83,7 @@ public partial class AccountViewModel : ObservableObject
             "Debit" => Accounts.Where(a => !a.IsCredit).ToList(),
             _ => Accounts.ToList()
         };
-        FilteredAccounts = new ObservableCollection<Account>(filtered);
+        FilteredAccounts = new ObservableCollection<AccountInfo>(filtered);
     }
 
     private void CalculateBalance()
@@ -70,9 +98,9 @@ public partial class AccountViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task DeleteAccountAsync(Account account)
+    public async Task DeleteAccountAsync(AccountInfo account)
     {
-        await _db.DeleteAccountAsync(account);
+        await _accountRepo.DeleteAsync(account.Id);
         await LoadAccountsAsync();
     }
 
@@ -83,18 +111,18 @@ public partial class AccountViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task GoToEditAccountAsync(Account account)
+    public async Task GoToEditAccountAsync(AccountInfo account)
     {
         await Shell.Current.GoToAsync(nameof(AccountFormPage), new Dictionary<string, object>
         {
-            { "Account", account }
+            { "AccountInfo", account }
         });
     }
 
     // ---- Form properties for AccountFormPage ----
 
     [ObservableProperty]
-    private Account? editingAccount;
+    private AccountInfo? editingAccount;
 
     [ObservableProperty]
     private string title = string.Empty;
@@ -109,22 +137,24 @@ public partial class AccountViewModel : ObservableObject
     private string? notes;
 
     [ObservableProperty]
-    private ObservableCollection<Person> people = new();
+    private ObservableCollection<PersonInfo> people = new();
 
     [ObservableProperty]
-    private Person? selectedPerson;
+    private PersonInfo? selectedPerson;
 
     [ObservableProperty]
-    private ObservableCollection<AccountType> accountTypes = new();
+    private ObservableCollection<AccountTypeInfo> accountTypes = new();
 
     [ObservableProperty]
-    private AccountType? selectedAccountType;
+    private AccountTypeInfo? selectedAccountType;
 
     [RelayCommand]
     public async Task LoadFormDataAsync()
     {
-        People = new ObservableCollection<Person>(await _db.GetPeopleAsync());
-        AccountTypes = new ObservableCollection<AccountType>(await _db.GetAccountTypesAsync());
+        var personModels = await _personRepo.GetAllAsync();
+        var typeModels = await _accountTypeRepo.GetAllAsync();
+        People = new ObservableCollection<PersonInfo>(_mapper.Map<List<PersonInfo>>(personModels));
+        AccountTypes = new ObservableCollection<AccountTypeInfo>(_mapper.Map<List<AccountTypeInfo>>(typeModels));
 
         if (EditingAccount is not null)
         {
@@ -137,7 +167,7 @@ public partial class AccountViewModel : ObservableObject
         }
     }
 
-    public void SetEditingAccount(Account account)
+    public void SetEditingAccount(AccountInfo account)
     {
         EditingAccount = account;
     }
@@ -157,18 +187,28 @@ public partial class AccountViewModel : ObservableObject
             return;
         }
 
-        var account = EditingAccount ?? new Account();
-        account.Title = Title.Trim();
-        account.Amount = amount;
-        account.IsCredit = IsCredit;
-        account.Notes = Notes;
-        account.PersonId = SelectedPerson?.Id;
-        account.AccountTypeId = SelectedAccountType?.Id;
+        try
+        {
+            if (EditingAccount is not null)
+            {
+                var entity = await _accountRepo.GetByIdAsync(EditingAccount.Id);
+                if (entity is null) return;
+                entity.Update(Title.Trim(), amount, IsCredit, Notes, SelectedPerson?.Id, SelectedAccountType?.Id);
+                var error = entity.Validate();
+                if (error != null) { await Shell.Current.DisplayAlert("Error", error, "OK"); return; }
+                await _accountRepo.SaveAsync(entity);
+            }
+            else
+            {
+                var entity = Account.Create(Title.Trim(), amount, IsCredit, Notes, SelectedPerson?.Id, SelectedAccountType?.Id);
+                await _accountRepo.SaveAsync(entity);
+            }
 
-        if (account.Id == 0)
-            account.CreatedAt = DateTime.Now;
-
-        await _db.SaveAccountAsync(account);
-        await Shell.Current.GoToAsync("..");
+            await Shell.Current.GoToAsync("..");
+        }
+        catch (InvalidOperationException ex)
+        {
+            await Shell.Current.DisplayAlert("Error", ex.Message, "OK");
+        }
     }
 }

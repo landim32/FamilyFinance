@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:FamilyFinance.ViewModels"
-             xmlns:models="clr-namespace:FamilyFinance.Models"
+             xmlns:dto="clr-namespace:FamilyFinance.DTOs;assembly=FamilyFinance.DTO"
              x:Class="FamilyFinance.Views.AccountTypePage"
              Title="Account Types">
 
@@ -23,7 +23,7 @@
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:AccountType">
+                    <DataTemplate x:DataType="dto:AccountTypeInfo">
                         <SwipeView>
                             <SwipeView.RightItems>
                                 <SwipeItems>

@@ -1,4 +1,4 @@
-using FamilyFinance.Models;
+using FamilyFinance.DTOs;
 using FamilyFinance.ViewModels;
 
 namespace FamilyFinance.Views;
@@ -22,7 +22,7 @@ public partial class AccountPage : ContentPage
 
     private async void OnAccountSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (e.CurrentSelection.FirstOrDefault() is Account account)
+        if (e.CurrentSelection.FirstOrDefault() is AccountInfo account)
         {
             await _viewModel.GoToEditAccountAsync(account);
 

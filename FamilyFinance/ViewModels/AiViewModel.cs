@@ -10,11 +10,11 @@ namespace FamilyFinance.ViewModels;
 
 public partial class AiViewModel : ObservableObject
 {
-    private readonly ChatGPTService _chatGpt;
+    private readonly IChatGPTService _chatGpt;
     private readonly ISpeechToText _speechToText;
     private CancellationTokenSource? _cts;
 
-    public AiViewModel(ChatGPTService chatGpt, ISpeechToText speechToText)
+    public AiViewModel(IChatGPTService chatGpt, ISpeechToText speechToText)
     {
         _chatGpt = chatGpt;
         _speechToText = speechToText;
@@ -84,13 +84,11 @@ public partial class AiViewModel : ObservableObject
 
         if (IsRecording)
         {
-            // Stop recording
             _cts?.Cancel();
             IsRecording = false;
             return;
         }
 
-        // Request permissions
         var isGranted = await _speechToText.RequestPermissions();
         if (!isGranted)
         {
@@ -124,7 +122,6 @@ public partial class AiViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
-            // User cancelled recording — send whatever was captured
             if (!string.IsNullOrWhiteSpace(UserInput))
                 await SendMessageAsync();
         }

@@ -1,8 +1,9 @@
 using System.Text.Json;
 using FamilyFinance.Models;
 using FamilyFinance.Models.Migration;
+using FamilyFinance.Repository;
 
-namespace FamilyFinance.Services;
+namespace FamilyFinance.AppServices;
 
 public class MigrationService : IMigrationService
 {

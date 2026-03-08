@@ -1,7 +1,7 @@
 using FamilyFinance.DTOs;
 using FamilyFinance.ViewModels;
 
-namespace FamilyFinance.Views;
+namespace FamilyFinance.Pages;
 
 [QueryProperty(nameof(AccountInfo), "AccountInfo")]
 public partial class AccountFormPage : ContentPage

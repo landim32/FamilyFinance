@@ -21,7 +21,7 @@ dotnet build -f net8.0-maccatalyst
 dotnet build -f net8.0-windows10.0.19041.0 -t:Run
 ```
 
-No test project exists yet. The MAUI workload must be installed: `dotnet workload install maui`.
+Tests: `dotnet test FamilyFinance.Tests/FamilyFinance.Tests.csproj`. The MAUI workload must be installed: `dotnet workload install maui`.
 
 ## Architecture
 
@@ -31,9 +31,15 @@ This is a **.NET 8 MAUI** cross-platform mobile/desktop app for personal finance
 
 The app uses strict MVVM with source generators:
 
-- **Models** (`FamilyFinance/Models/`): Plain C# classes with `[Table]`, `[PrimaryKey]`, `[AutoIncrement]` SQLite attributes. Three entities: `Account`, `Person`, `AccountType`.
-- **ViewModels** (`FamilyFinance/ViewModels/`): Decorated with `[ObservableObject]`, use `[ObservableProperty]` for bindable fields and `[RelayCommand]` for commands. All ViewModels are registered as **transient** in DI.
-- **Views** (`FamilyFinance/Views/`): XAML ContentPages that receive their ViewModel via constructor injection and set `BindingContext`. Each page has a `.xaml` + `.xaml.cs` pair.
+- **Domain Models** (`FamilyFinance.Domain/Models/`): Rich entities with `[Table]`, `[PrimaryKey]`, `[AutoIncrement]` SQLite attributes and `Validate()`/`Update()`/`Create()` methods. Three entities: `Account`, `Person`, `AccountType`.
+- **DTOs** (`FamilyFinance.DTO/DTOs/`): `AccountInfo`, `PersonInfo`, `AccountTypeInfo` — used in ViewModels and Pages, never Domain Models directly.
+- **Repository Interfaces** (`FamilyFinance.Infra.Interfaces/Repository/`): `IAccountRepository`, `IPersonRepository`, `IAccountTypeRepository` — namespace `FamilyFinance.Repository`.
+- **AppService Interfaces** (`FamilyFinance.Infra.Interfaces/AppServices/`): `IChatGPTService`, `IMigrationService` — namespace `FamilyFinance.AppServices`.
+- **Repositories** (`FamilyFinance.Infra/Repository/`): `AccountRepository`, `PersonRepository`, `AccountTypeRepository` — namespace `FamilyFinance.Repository`.
+- **AppServices** (`FamilyFinance.Infra/AppServices/`): `ChatGPTService`, `MigrationService` — namespace `FamilyFinance.AppServices`.
+- **AutoMapper Profiles** (`FamilyFinance.Infra/Mappings/`): `AccountProfile`, `PersonProfile`, `AccountTypeProfile` — map Domain Models ↔ DTOs.
+- **ViewModels** (`FamilyFinance/ViewModels/`): Decorated with `[ObservableObject]`, use `[ObservableProperty]` for bindable fields and `[RelayCommand]` for commands. Bind to **DTOs**, use `IMapper` for conversions. All ViewModels are registered as **transient** in DI.
+- **Pages** (`FamilyFinance/Pages/`): XAML ContentPages that receive their ViewModel via constructor injection and set `BindingContext`. Each page has a `.xaml` + `.xaml.cs` pair.
 
 ### Services
 

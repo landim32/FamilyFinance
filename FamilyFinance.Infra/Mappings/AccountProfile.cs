@@ -2,7 +2,7 @@ using AutoMapper;
 using FamilyFinance.DTOs;
 using FamilyFinance.Models;
 
-namespace FamilyFinance.Mappers;
+namespace FamilyFinance.Mappings;
 
 public class AccountProfile : Profile
 {

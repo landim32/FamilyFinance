@@ -1,6 +1,6 @@
 using FamilyFinance.ViewModels;
 
-namespace FamilyFinance.Views;
+namespace FamilyFinance.Pages;
 
 public partial class ExportPage : ContentPage
 {

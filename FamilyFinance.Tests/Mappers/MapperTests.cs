@@ -1,6 +1,6 @@
 using AutoMapper;
 using FamilyFinance.DTOs;
-using FamilyFinance.Mappers;
+using FamilyFinance.Mappings;
 using FamilyFinance.Models;
 
 namespace FamilyFinance.Tests.Mappers;

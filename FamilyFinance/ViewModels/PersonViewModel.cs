@@ -4,8 +4,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FamilyFinance.DTOs;
 using FamilyFinance.Models;
-using FamilyFinance.Services;
-using FamilyFinance.Views;
+using FamilyFinance.Repository;
+using FamilyFinance.Pages;
 
 namespace FamilyFinance.ViewModels;
 

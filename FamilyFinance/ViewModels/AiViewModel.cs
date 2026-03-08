@@ -4,7 +4,7 @@ using CommunityToolkit.Maui.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FamilyFinance.Models;
-using FamilyFinance.Services;
+using FamilyFinance.AppServices;
 
 namespace FamilyFinance.ViewModels;
 

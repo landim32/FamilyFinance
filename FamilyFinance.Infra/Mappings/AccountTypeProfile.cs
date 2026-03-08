@@ -2,14 +2,14 @@ using AutoMapper;
 using FamilyFinance.DTOs;
 using FamilyFinance.Models;
 
-namespace FamilyFinance.Mappers;
+namespace FamilyFinance.Mappings;
 
-public class PersonProfile : Profile
+public class AccountTypeProfile : Profile
 {
-    public PersonProfile()
+    public AccountTypeProfile()
     {
-        CreateMap<Person, PersonInfo>();
-        CreateMap<PersonInfo, Person>()
+        CreateMap<AccountType, AccountTypeInfo>();
+        CreateMap<AccountTypeInfo, AccountType>()
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
     }

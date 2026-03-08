@@ -1,4 +1,4 @@
-using FamilyFinance.Views;
+using FamilyFinance.Pages;
 
 namespace FamilyFinance;
 

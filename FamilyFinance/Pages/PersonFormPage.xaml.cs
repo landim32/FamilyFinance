@@ -1,7 +1,7 @@
 using FamilyFinance.DTOs;
 using FamilyFinance.ViewModels;
 
-namespace FamilyFinance.Views;
+namespace FamilyFinance.Pages;
 
 [QueryProperty(nameof(PersonInfo), "PersonInfo")]
 public partial class PersonFormPage : ContentPage

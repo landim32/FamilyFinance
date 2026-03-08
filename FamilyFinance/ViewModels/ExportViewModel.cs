@@ -3,7 +3,8 @@ using AutoMapper;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FamilyFinance.DTOs;
-using FamilyFinance.Services;
+using FamilyFinance.AppServices;
+using FamilyFinance.Repository;
 
 namespace FamilyFinance.ViewModels;
 

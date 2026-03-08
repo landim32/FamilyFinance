@@ -4,9 +4,10 @@ using CommunityToolkit.Maui.Media;
 using FamilyFinance.AppConfiguration;
 using FamilyFinance.Data;
 using FamilyFinance.Models;
-using FamilyFinance.Services;
+using FamilyFinance.AppServices;
+using FamilyFinance.Repository;
 using FamilyFinance.ViewModels;
-using FamilyFinance.Views;
+using FamilyFinance.Pages;
 using Microsoft.Extensions.Logging;
 
 namespace FamilyFinance;
@@ -35,9 +36,7 @@ public static class MauiProgram
         builder.Services.AddSingleton(sp =>
         {
             var dbPath = Path.Combine(FileSystem.AppDataDirectory, "familyfinance.db");
-            var db = new AppDatabase(dbPath);
-            db.InitializeAsync().GetAwaiter().GetResult();
-            return db;
+            return new AppDatabase(dbPath);
         });
 
         // Repositories

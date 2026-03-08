@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:FamilyFinance.ViewModels"
              xmlns:helpers="clr-namespace:FamilyFinance.Helpers"
-             x:Class="FamilyFinance.Views.PersonPage"
+             x:Class="FamilyFinance.Pages.PersonPage"
              Title="People">
 
     <ContentPage.Resources>

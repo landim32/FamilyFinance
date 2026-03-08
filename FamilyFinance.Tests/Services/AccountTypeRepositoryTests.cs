@@ -1,6 +1,6 @@
 using FamilyFinance.Data;
 using FamilyFinance.Models;
-using FamilyFinance.Services;
+using FamilyFinance.Repository;
 
 namespace FamilyFinance.Tests.Services;
 

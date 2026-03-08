@@ -1,6 +1,6 @@
 using FamilyFinance.Models;
 
-namespace FamilyFinance.Services;
+namespace FamilyFinance.Repository;
 
 public interface IPersonRepository
 {

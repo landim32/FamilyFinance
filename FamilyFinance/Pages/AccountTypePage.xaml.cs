@@ -1,7 +1,7 @@
 using FamilyFinance.DTOs;
 using FamilyFinance.ViewModels;
 
-namespace FamilyFinance.Views;
+namespace FamilyFinance.Pages;
 
 public partial class AccountTypePage : ContentPage
 {

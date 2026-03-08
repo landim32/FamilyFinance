@@ -9,7 +9,12 @@
       "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/platform-tools/adb.exe\" shell:*)",
       "Bash(export:*)",
       "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/platform-tools/adb.exe\":*)",
-      "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/platform-tools/adb.exe\" kill-server:*)"
+      "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/platform-tools/adb.exe\" kill-server:*)",
+      "Bash(dotnet test:*)",
+      "Skill(build)",
+      "Skill(execute)",
+      "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/platform-tools/adb.exe\" wait-for-device:*)",
+      "Bash(\"C:/Program Files \\(x86\\)/Android/android-sdk/platform-tools/adb.exe\" logcat:*)"
     ]
   }
 }

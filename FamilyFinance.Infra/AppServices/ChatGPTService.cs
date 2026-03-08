@@ -3,8 +3,9 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FamilyFinance.Models;
+using FamilyFinance.Repository;
 
-namespace FamilyFinance.Services;
+namespace FamilyFinance.AppServices;
 
 public class ChatGPTService : IChatGPTService
 {

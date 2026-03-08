@@ -1,4 +1,4 @@
-namespace FamilyFinance.Services;
+namespace FamilyFinance.AppServices;
 
 public interface IMigrationService
 {
